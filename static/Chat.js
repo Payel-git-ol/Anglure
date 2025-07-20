@@ -1,4 +1,42 @@
-// Функции для работы с медиа и сообщениями
+// Подключение к веб-сокету
+const socket = new WebSocket(`ws://${window.location.host}/chat`);
+
+// Функция добавления сообщения в чат
+function addMessageToChat(message, isNew = false) {
+    const displayContainer = document.getElementById('displayContainer');
+
+    // Если сообщение новое, добавляем в начало, иначе - как обычно
+    if (isNew) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('content-block');
+        messageDiv.dataset.id = message.ID;
+
+        const messageText = document.createElement('p');
+        messageText.classList.add('display-text');
+        messageText.textContent = message.Message;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.textContent = '✖';
+        deleteBtn.onclick = function() {
+            deleteMessage(message.ID, this);
+        };
+
+        messageDiv.appendChild(messageText);
+        messageDiv.appendChild(deleteBtn);
+
+        // Добавляем новое сообщение в начало
+        displayContainer.insertBefore(messageDiv, displayContainer.firstChild);
+    }
+}
+
+// Обработчик входящих сообщений через веб-сокет
+socket.onmessage = function(event) {
+    const message = JSON.parse(event.data);
+    addMessageToChat(message, true);
+};
+
+// Функции для работы с медиа
 let selectedMedia = null;
 let selectedMediaType = null;
 
@@ -24,72 +62,6 @@ function previewMedia(input) {
     reader.readAsDataURL(file);
 }
 
-function sendMessage() {
-    const textInput = document.getElementById('textInput');
-    const displayContainer = document.getElementById('displayContainer');
-    if (!textInput.value.trim() && !selectedMedia) return;
-
-    const newDiv = document.createElement('div');
-    newDiv.classList.add('content-block');
-
-    // Медиа
-    if (selectedMedia && selectedMediaType === "image") {
-        const img = document.createElement('img');
-        img.src = selectedMedia;
-        img.style.maxWidth = "150px";
-        img.style.display = "block";
-        newDiv.appendChild(img);
-    }
-    if (selectedMedia && selectedMediaType === "video") {
-        const video = document.createElement('video');
-        video.src = selectedMedia;
-        video.controls = true;
-        video.style.maxWidth = "150px";
-        video.style.display = "block";
-        newDiv.appendChild(video);
-    }
-
-    // Текст
-    if (textInput.value.trim()) {
-        const p = document.createElement('p');
-        p.className = "display-text";
-        p.textContent = textInput.value;
-
-        // Кнопка удаления
-        const delBtn = document.createElement('button');
-        delBtn.textContent = "✖";
-        delBtn.className = "delete-btn";
-        delBtn.onclick = function(e) {
-            e.stopPropagation();
-            newDiv.remove();
-        };
-
-        // Обёртка для текста и кнопки
-        const msgWrap = document.createElement('span');
-        msgWrap.style.display = "flex";
-        msgWrap.style.alignItems = "center";
-        msgWrap.appendChild(p);
-        msgWrap.appendChild(delBtn);
-
-        newDiv.appendChild(msgWrap);
-    }
-
-    displayContainer.appendChild(newDiv);
-
-    // Очистка
-    selectedMedia = null;
-    selectedMediaType = null;
-    document.getElementById("photoPreview").innerHTML = '';
-    document.getElementById("fileInput").value = '';
-}
-
-// Enter в поле ввода
-document.getElementById('textInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        // Обработка будет в обработчике формы
-    }
-});
-
 // Обработчик отправки формы
 document.addEventListener('DOMContentLoaded', function() {
     const chatForm = document.getElementById('chatForm');
@@ -98,15 +70,28 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const textInput = document.getElementById('textInput');
             const message = textInput.value.trim();
-            if (!message) return;
 
+            if (!message && !selectedMedia) return;
+
+            // Отправка сообщения на сервер
             fetch('/chat', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
                 body: 'message=' + encodeURIComponent(message)
-            }).then(() => {
-                sendMessage(); // Визуальный вывод сообщения
-                textInput.value = ''; // Очистка поля ввода
+            }).then(response => {
+                if (response.ok) {
+                    textInput.value = '';
+
+                    // Очистка превью медиа
+                    if (selectedMedia) {
+                        selectedMedia = null;
+                        selectedMediaType = null;
+                        document.getElementById("photoPreview").innerHTML = '';
+                        document.getElementById("fileInput").value = '';
+                    }
+                }
             });
         });
     }
@@ -122,22 +107,20 @@ function deleteMessage(id, btn) {
         });
 }
 
+// Обработка закрытия соединения
+socket.onclose = function(event) {
+    if (event.wasClean) {
+        console.log(`Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
+    } else {
+        console.log('Соединение прервано');
+        // Попытка переподключения через 5 секунд
+        setTimeout(() => {
+            window.location.reload();
+        }, 5000);
+    }
+};
 
-
-function submitForm(e) {
-    e.preventDefault(); // Предотвращаем стандартную отправку формы
-
-    // Отправляем форму через Fetch API
-    fetch('/chat', {
-        method: 'POST',
-        body: new FormData(document.getElementById('chatForm'))
-    })
-        .then(response => {
-            // После успешной отправки обновляем страницу
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
-}
-setInterval(() => location.reload(), 10000);
+// Обработка ошибок соединения
+socket.onerror = function(error) {
+    console.log('Ошибка соединения:', error.message);
+};

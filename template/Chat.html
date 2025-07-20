@@ -11,7 +11,7 @@
 <body>
 <div class="header">Angular</div>
 <div class="container">
-  <form class="podinput" id="chatForm" method="POST" action="/chat" autocomplete="off">
+  <form class="podinput" id="chatForm" autocomplete="off">
     <div class="podinputdiv">
       <input class="input" type="text" id="textInput" name="message" placeholder="Введите сообщение..."/>
       <button class="ent-button" id="sendButton" type="submit" title="Отправить"> ➤ </button>
@@ -21,9 +21,10 @@
   <input type="file" id="fileInput" class="input" accept="image/*,video/*" style="display: none" onchange="previewMedia(this)"/>
   <div class="photo-preview" id="photoPreview"></div>
   <div class="display-container" id="displayContainer">
+    <!-- Сообщения будут загружаться как при открытии страницы, так и через веб-сокеты -->
     {{range .}}
     <div class="content-block" data-id="{{.ID}}">
-      <p class="display-text"> {{.Message}} </p>
+      <p class="display-text">{{.Message}}</p>
       <button class="delete-btn" onclick="deleteMessage({{.ID}}, this)"> ✖ </button>
     </div>
     {{end}}
