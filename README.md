@@ -1,1 +1,2 @@
-Hello, a new version of Angular 0.2.Beta has appeared, what's new? And the fact that now you don't need to refresh the browser page before receiving a message because Web-Socket technology has appeared, thanks to which messages come immediately without delay!
+Hi, we changed the name of the social network Angular due to confusion with the framework Angular.js, now we call it Anglure!
+Also, in this patch 0.2,5.Beta, not only was rebranding done, but also a bug was fixed when sending messages !
