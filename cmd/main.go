@@ -16,8 +16,12 @@ func main() {
 
 	http.HandleFunc("/chat", Complite.HandleChat)
 
-	fmt.Println("      /\\\n     /  \\\n    / /\\ \\\n   / /  \\ \\\n  / /----\\ \\\n /_/      \\_\\\n   ANGULAR")
+	fmt.Println("       /\\\n      /  \\\n     / /\\ \\\n    / /  \\ \\\n   / /    \\ \\\n  / /------\\ \\\n /_/        \\_\\   ")
+	fmt.Println("    ANGLURE")
 	fmt.Println("http://localhost:8080")
 
 	http.ListenAndServe(":8080", nil)
 }
+
+//git commit -m "      "
+//git push --force

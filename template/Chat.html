@@ -1,35 +1,63 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Чат | Anglure </title>
-  <link rel="icon" href="/static/Angular.png" type="image/x-icon">
-  <link rel="shortcut icon" href="/static/photo_2025-07-20_22-47-48.jpg" type="image/x-icon">
-  <link rel="stylesheet" href="/static/Chat.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Чат | Anglure | {{.Profile.Name}}</title>
+  <link rel="icon" href="/static/Angular.png" type="image/x-icon" />
+  <link rel="shortcut icon" href="/static/img/photo_2025-07-20_22-47-48.jpg" type="image/x-icon" />
+  <link rel="stylesheet" href="/static/CSS/Chat.css" />
 </head>
 <body>
+
 <div class="header">Anglure</div>
+
 <div class="container">
   <form class="podinput" id="chatForm" autocomplete="off">
     <div class="podinputdiv">
-      <input class="input" type="text" id="textInput" name="message" placeholder="Введите сообщение..."/>
+      <input class="input" type="text" id="textInput" name="message" placeholder="Введите сообщение..." />
       <button class="ent-button" id="sendButton" type="submit" title="Отправить"> ➤ </button>
     </div>
   </form>
 
-  <input type="file" id="fileInput" class="input" accept="image/*,video/*" style="display: none" onchange="previewMedia(this)"/>
+  <input type="file" id="fileInput" class="input" accept="image/*,video/*" style="display: none" onchange="previewMedia(this)" />
   <div class="photo-preview" id="photoPreview"></div>
+
   <div class="display-container" id="displayContainer">
-    <!-- Сообщения будут загружаться как при открытии страницы, так и через веб-сокеты -->
-    {{range .}}
+    {{range .Messages}}
     <div class="content-block" data-id="{{.ID}}">
+      <div class="nameUserTextMessage">{{.Name}}</div>
       <p class="display-text">{{.Message}}</p>
       <button class="delete-btn" onclick="deleteMessage({{.ID}}, this)"> ✖ </button>
     </div>
     {{end}}
   </div>
 </div>
-<script src="/static/Chat.js"></script>
+
+<div class="profile-menu">
+  <button class="profile-button">
+    <img src="/static/img/photo_2025-07-20_22-47-48.jpg" alt="Профиль" width="30" />
+  </button>
+  <div class="dropdown-content">
+    <button class="menu-button" id="profileButton">Мой профиль</button>
+    <button class="menu-button" id="settingsButton">Настройки</button>
+    <a href="/" class="menu-link">Выйти</a>
+  </div>
+</div>
+
+<!-- Модальное окно профиля -->
+<form class="Profile_form" id="ProfileForm" autocomplete="off">
+  <div class="modal" id="profileModal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2 class="mypr">Мой профиль</h2>
+      <p class="NameUserProfile">Имя пользователя: {{.Profile.Name}}</p>
+      <p class="EmailUserProfile">Электронная почта: {{.Profile.Email}}</p>
+    </div>
+  </div>
+</form>
+
+<script src="/static/JavaScript/Chat.js"></script>
+
 </body>
 </html>
