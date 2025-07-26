@@ -1,4 +1,4 @@
-package Complite
+package Registration
 
 import (
 	"html/template"
@@ -8,9 +8,9 @@ import (
 
 func HandleRegistr(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		tmpl, err := template.ParseFiles("template/Registr.html")
+		tmpl, err := template.ParseFiles("web/templates/RegistrationTemplates/Registr.html")
 		if err != nil {
-			log.Fatal("Ошибка прогрузки шаблона")
+			log.Fatal("Ошибка прогрузки шаблона Registr")
 		}
 		tmpl.Execute(w, nil)
 		return

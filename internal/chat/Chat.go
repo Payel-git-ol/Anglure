@@ -1,6 +1,7 @@
-package Complite
+package chat
 
 import (
+	"Angular/internal/DataBase/postgres"
 	"encoding/json"
 	"html/template"
 	"log"
@@ -10,37 +11,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ChatMessage struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	UserID    uint      `json:"user_id"`
-	Message   string    `json:"message"`
-	Email     string    `json:"email"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type ChatPageData struct {
-	Profile  UserProfileData
-	Messages []ChatMessage
-}
-
-type UserProfileData struct {
-	Name  string
-	Email string
-}
-
-func (ChatMessage) TableName() string {
-	return "chat_messages"
-}
-
 type Client struct {
 	conn *websocket.Conn
-	send chan ChatMessage
+	send chan postgres.ChatMessage
 }
 
 type ChatHub struct {
 	clients    map[*Client]bool
-	broadcast  chan ChatMessage
+	broadcast  chan postgres.ChatMessage
 	register   chan *Client
 	unregister chan *Client
 }
@@ -52,7 +30,7 @@ var upgrader = websocket.Upgrader{
 }
 
 var hub = ChatHub{
-	broadcast:  make(chan ChatMessage),
+	broadcast:  make(chan postgres.ChatMessage),
 	register:   make(chan *Client),
 	unregister: make(chan *Client),
 	clients:    make(map[*Client]bool),
@@ -93,7 +71,7 @@ func HandleChat(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Нет id", http.StatusBadRequest)
 			return
 		}
-		result := db.Delete(&ChatMessage{}, id)
+		result := postgres.Db.Delete(&postgres.ChatMessage{}, id)
 		if result.Error != nil {
 			http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
 			return
@@ -106,8 +84,8 @@ func HandleChat(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var messages []ChatMessage
-		db.Order("created_at desc").Find(&messages)
+		var messages []postgres.ChatMessage
+		postgres.Db.Order("created_at desc").Find(&messages)
 
 		// Получаем профиль пользователя из куков (или по-другому)
 		nameCookie, err := r.Cookie("user_name")
@@ -119,17 +97,17 @@ func HandleChat(w http.ResponseWriter, r *http.Request) {
 			emailCookie = &http.Cookie{Value: "guest@example.com"}
 		}
 
-		data := ChatPageData{
-			Profile: UserProfileData{
+		data := postgres.ChatPageData{
+			Profile: postgres.UserProfileData{
 				Name:  nameCookie.Value,
 				Email: emailCookie.Value,
 			},
 			Messages: messages,
 		}
 
-		tmpl, err := template.ParseFiles("template/Chat.html")
+		tmpl, err := template.ParseFiles("web/templates/ChatTemplates/Chat.html")
 		if err != nil {
-			http.Error(w, "Ошибка загрузки шаблона", http.StatusInternalServerError)
+			http.Error(w, "Ошибка загрузки шаблона Chat", http.StatusInternalServerError)
 			return
 		}
 
@@ -147,13 +125,13 @@ func HandleChat(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var userID uint
-		var user UserRegister
-		result := db.Where("email = ?", emailCookie.Value).First(&user)
+		var user postgres.UserRegister
+		result := postgres.Db.Where("email = ?", emailCookie.Value).First(&user)
 		if result.Error == nil {
 			userID = user.ID
 		}
 
-		newMessage := ChatMessage{
+		newMessage := postgres.ChatMessage{
 			UserID:    userID,
 			Message:   r.FormValue("message"),
 			Email:     emailCookie.Value,
@@ -161,7 +139,7 @@ func HandleChat(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: time.Now(),
 		}
 
-		result = db.Create(&newMessage)
+		result = postgres.Db.Create(&newMessage)
 		if result.Error != nil {
 			log.Printf("Ошибка сохранения: %v", result.Error)
 			http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
@@ -182,7 +160,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	client := &Client{
 		conn: conn,
-		send: make(chan ChatMessage, 256),
+		send: make(chan postgres.ChatMessage, 256),
 	}
 
 	hub.register <- client
@@ -203,7 +181,7 @@ func (c *Client) readPump() {
 			break
 		}
 
-		var msg ChatMessage
+		var msg postgres.ChatMessage
 		if err := json.Unmarshal(message, &msg); err == nil {
 			// обработка входящих сообщений (не используется сейчас)
 		}

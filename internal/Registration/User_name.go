@@ -1,24 +1,17 @@
-package Complite
+package Registration
 
 import (
+	"Angular/internal/DataBase/postgres"
 	"html/template"
 	"log"
 	"net/http"
 )
 
-type UserRegister struct {
-	Email    string
-	Password string
-	Name     string
-	Region   string
-	ID       uint
-}
-
 func HandleUsername(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		tmpl, err := template.ParseFiles("template/Username.html")
+		tmpl, err := template.ParseFiles("/web/templates/RegistrationTemplates/Username.html")
 		if err != nil {
-			log.Fatal("Ошибка прогрузки шаблона")
+			log.Fatal("Ошибка прогрузки шаблона Username")
 		}
 		tmpl.Execute(w, nil)
 		return
@@ -39,14 +32,14 @@ func HandleUsername(w http.ResponseWriter, r *http.Request) {
 		name := r.PostFormValue("username")
 		region := r.PostFormValue("region")
 
-		newUser := UserRegister{
+		newUser := postgres.UserRegister{
 			Email:    emailCookie.Value,
 			Password: passwordCookie.Value,
 			Name:     name,
 			Region:   region,
 		}
 
-		result := db.Create(&newUser)
+		result := postgres.Db.Create(&newUser)
 		if result.Error != nil {
 			log.Printf("Ошибка при сохранении пользователя: %v", result.Error)
 			http.Error(w, "Ошибка регистрации: "+result.Error.Error(), http.StatusInternalServerError)

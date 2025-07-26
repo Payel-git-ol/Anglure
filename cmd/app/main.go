@@ -1,7 +1,8 @@
 package main
 
 import (
-	"Angular/Complite"
+	"Angular/internal/Registration"
+	"Angular/internal/chat"
 	"fmt"
 	"net/http"
 )
@@ -10,11 +11,11 @@ func main() {
 	st := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", st))
 
-	http.HandleFunc("/", Complite.HandleRegistr)
+	http.HandleFunc("/", Registration.HandleRegistr)
 
-	http.HandleFunc("/usname", Complite.HandleUsername)
+	http.HandleFunc("/usname", Registration.HandleUsername)
 
-	http.HandleFunc("/chat", Complite.HandleChat)
+	http.HandleFunc("/chat", chat.HandleChat)
 
 	fmt.Println("       /\\\n      /  \\\n     / /\\ \\\n    / /  \\ \\\n   / /    \\ \\\n  / /------\\ \\\n /_/        \\_\\   ")
 	fmt.Println("    ANGLURE")
