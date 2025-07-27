@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	st := http.FileServer(http.Dir("static"))
+	st := http.FileServer(http.Dir("web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", st))
 
 	http.HandleFunc("/", Registration.HandleRegistr)
