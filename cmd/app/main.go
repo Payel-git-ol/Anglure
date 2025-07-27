@@ -24,5 +24,7 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
+//git add .
 //git commit -m "      "
 //git push --force
+//go run cmd/main.go --files-dir=./Complite тут пока не точно
