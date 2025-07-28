@@ -9,7 +9,7 @@ import (
 
 func HandleUsername(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		tmpl, err := template.ParseFiles("/web/templates/RegistrationTemplates/Username.html")
+		tmpl, err := template.ParseFiles("web/templates/RegistrationTemplates/Username.html")
 		if err != nil {
 			log.Fatal("Ошибка прогрузки шаблона Username")
 		}

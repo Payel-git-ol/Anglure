@@ -46,6 +46,9 @@ body {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 16px;
+    position: relative;
+    width: 700px;
+    left: 20px;
 }
 
 .ent-button {
@@ -56,10 +59,16 @@ body {
     padding: 10px 15px;
     cursor: pointer;
     font-size: 16px;
+    position: relative;
+    left: 20px;
+    top: 1px;
 }
 
 .ent-button:hover {
-    background-color: #3d6293;
+    background-color: white;
+    color: #b80028;
+    border-color: #181818;
+    border: 1px solid;
 }
 
 .photo-preview {
